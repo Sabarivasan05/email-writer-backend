@@ -1,23 +1,14 @@
-# Use Maven image to build the project
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# Use official OpenJDK image
+FROM openjdk:17-jdk-slim
+
+# Set working directory inside container
 WORKDIR /app
 
-# Copy pom.xml and source code
-COPY pom.xml .
-COPY src ./src
+# Copy the JAR file from target folder (after mvn package)
+COPY target/*.jar app.jar
 
-# Build the app (creates target/*.jar)
-RUN mvn clean package -DskipTests
-
-# Use a smaller runtime image
-FROM eclipse-temurin:17-jdk-alpine
-WORKDIR /app
-
-# Copy the JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose port
+# Expose port 8080 (Render expects web services on this port)
 EXPOSE 8080
 
-# Run the application
+# Run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]
